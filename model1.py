@@ -2,12 +2,8 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
-
-class clean:
-    pass
-
-
-
+from sklearn.svm import SVC  
+from sklearn.ensemble import GradientBoostingClassifier
 
 # Usage:
 # fillna_with_group_means(df, 'Age', 'Sex')
@@ -54,15 +50,34 @@ def LR():
     logreg.fit(x_train, y_train)
     return logreg
 
+def SVM():
+    clf = SVC(kernel='linear')
+    clf.fit(x_train, y_train)
+    return clf
+
+def GBC():
+    gb_clf = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1, random_state=42)
+    gb_clf.fit(x_train, y_train)
+    return gb_clf
+
 # Evaluates all the models
 def evaluate():
-    
+    # Random Forest Classification
     rfc_report = classification_report(y_val, RFC().predict(x_val))
     print("Random Forest Classification report: ")
     print(rfc_report)
+    # Logistic Regression
     lr_report = classification_report(y_val, LR().predict(x_val))
     print("Logistic Regression report: ")
     print(lr_report)
+    # Support Vector Machine
+    svm_report = classification_report(y_val, SVM().predict(x_val))
+    print("Support Vector Machine report: ")
+    print(svm_report)
+    # Gradient Boosting Classic=fication
+    gbc_report = classification_report(y_val, GBC().predict(x_val))
+    print("Gradient Boosting Classification report: ")
+    print(gbc_report)
     
 
 # # Creates a csv for final submission
@@ -80,5 +95,4 @@ target = ["Survived"]
 x_train, y_train, x_val, y_val, x_test, y_test = split_data(features, target)
 
 evaluate()
-print(len(y_val))
 
