@@ -1,5 +1,13 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+
+class clean:
+    pass
+
+
+
 
 # Usage:
 # fillna_with_group_means(df, 'Age', 'Sex')
@@ -28,9 +36,9 @@ def clean_data(data, pred_inp):
 # Splits the data into train, validation and test subsets
 # Returns 6 data frames
 def split_data(features, target):
-    train_data = data[:50]
-    val_data = data[50:75]
-    test_data = data[75:]
+    train_data = data[:int(0.5*len(data))]
+    val_data = data[int(0.5*len(data)):int(0.75*len(data))]
+    test_data = data[int(0.75*len(data)):]
     return train_data[features], train_data[target], \
         val_data[features], val_data[target], \
             test_data[features], test_data[target]
@@ -41,10 +49,21 @@ def RFC():
     model.fit(x_train, y_train)
     return model
 
+def LR():
+    logreg = LogisticRegression(random_state=16)
+    logreg.fit(x_train, y_train)
+    return logreg
+
 # Evaluates all the models
 def evaluate():
-    rfc_accuracy = RFC().score(x_val, y_val)
-    print("Accuracy from Random Forest Classification: "+str(rfc_accuracy))
+    
+    rfc_report = classification_report(y_val, RFC().predict(x_val))
+    print("Random Forest Classification report: ")
+    print(rfc_report)
+    lr_report = classification_report(y_val, LR().predict(x_val))
+    print("Logistic Regression report: ")
+    print(lr_report)
+    
 
 # # Creates a csv for final submission
 # def create_csv():
@@ -60,6 +79,6 @@ features = ["Pclass", "Age", "Sex_female", "Sex_male", "SibSp", "Parch"]
 target = ["Survived"]
 x_train, y_train, x_val, y_val, x_test, y_test = split_data(features, target)
 
-print(x_train)
-
 evaluate()
+print(len(y_val))
+
