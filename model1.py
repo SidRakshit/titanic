@@ -4,6 +4,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC  
 from sklearn.ensemble import GradientBoostingClassifier
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 class DataPrep:
 
@@ -26,20 +28,33 @@ class DataPrep:
         new_df[fill_col] = new_df.apply(replace_nan, axis=1)
         return new_df
 
-    def clean_data(self, data, pred_inp):
-        data = self.fillna_with_group_means(data, "Age", "Sex")
-        pred_inp = self.fillna_with_group_means(pred_inp, "Age", "Sex")
-        return pd.get_dummies(data), pd.get_dummies(pred_inp)
+    def clean_data(self, df, cat_cols):
+        df = self.fillna_with_group_means(df, "Age", "Sex")
+        df = self.fillna_with_group_means(df, "Age", "Sex")          
+        dummies = pd.get_dummies(df[cat_cols])
+        df = df.drop(columns=cat_cols)
+        df = pd.concat([df, dummies], axis=1)
+        
+        return df
 
     def split_data(self, df, features, target):
-        train_data = df[:int(0.5*len(df))]
+        train_data = df[0:int(0.5*len(df))]
         val_data = df[int(0.5*len(df)):int(0.75*len(df))]
-        test_data = df[int(0.75*len(df)):]
+        test_data = df[int(0.75*len(df)):len(df)]
         return (
             train_data[features], train_data[target],
             val_data[features], val_data[target],
             test_data[features], test_data[target]
         )
+
+class DataExp:
+    def __init__(self):
+        pass
+    def corr(self, df1, df2, target):
+        corr_mat = pd.concat([df1, df2], axis=1).corr()
+        print(corr_mat)
+        sns.heatmap(corr_mat, annot=True, cmap='coolwarm')
+        plt.show()
 
 class Model:
     def __init__(self, x_train, y_train):
@@ -97,13 +112,22 @@ def evaluate():
 
 data = pd.read_csv("train.csv")
 pred_inp = pd.read_csv("test.csv")
-features = ["Pclass", "Age", "Sex_female", "Sex_male", "SibSp", "Parch"]
-target = ["Survived"]
+cat_cols = ["Pclass", "Sex", "Embarked"]
 
 # Data Prep Stage
 dp = DataPrep()
-data, pred_inp = dp.clean_data(data, pred_inp)
+data, pred_inp = dp.clean_data(data, cat_cols), dp.clean_data(pred_inp, cat_cols)
+
+
+features = data.columns
+features = features.drop(['Survived','PassengerId','Name', 'Ticket', 'Fare', 'Cabin'])
+target = ["Survived"]
 x_train, y_train, x_val, y_val, x_test, y_test = dp.split_data(data, features, target)
+
+
+# Data Exploration
+de = DataExp()
+de.corr(x_train, y_train, target)
 
 # Modelling Stage
 model = Model(x_train, y_train)
